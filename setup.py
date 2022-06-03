@@ -52,29 +52,21 @@ Works for web apps too
                 # request.
 """
 
+from itertools import chain
 import os
 import platform
 import sys
-from itertools import chain
 
 from distutils.command.build_ext import build_ext
 from distutils.errors import (
     CCompilerError, DistutilsExecError, DistutilsPlatformError)
 from setuptools import Distribution as _Distribution, Extension, setup
-from setuptools.command.test import test as TestCommand
 
 cmdclass = {}
-if sys.version_info < (2, 6):
-    raise Exception('Logbook requires Python 2.6 or higher.')
 
 cpython = platform.python_implementation() == 'CPython'
 
 ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError)
-if sys.platform == 'win32':
-    # 2.6's distutils.msvc9compiler can raise an IOError when failing to
-    # find the compiler
-    ext_errors += (IOError,)
-
 
 class BuildFailed(Exception):
     def __init__(self):
@@ -116,32 +108,6 @@ class Distribution(_Distribution):
         return True
 
 
-class PyTest(TestCommand):
-    # from https://pytest.org/latest/goodpractises.html\
-    # #integration-with-setuptools-test-commands
-    user_options = [('pytest-args=', 'a', 'Arguments to pass to py.test')]
-
-    default_options = ['tests']
-
-    def initialize_options(self):
-        TestCommand.initialize_options(self)
-        self.pytest_args = ''
-
-    def finalize_options(self):
-        TestCommand.finalize_options(self)
-        self.test_args = []
-        self.test_suite = True
-
-    def run_tests(self):
-        # import here, cause outside the eggs aren't loaded
-        import pytest
-        errno = pytest.main(
-            ' '.join(self.default_options) + ' ' + self.pytest_args)
-        sys.exit(errno)
-
-cmdclass['test'] = PyTest
-
-
 def status_msgs(*msgs):
     print('*' * 75)
     for msg in msgs:
@@ -155,15 +121,6 @@ with open(version_file_path) as version_file:
     exec(version_file.read())  # pylint: disable=W0122
 
 extras_require = dict()
-if sys.version_info[:2] < (3, 0):
-    extras_require['test'] = set(['pytest', 'pytest-cov<2.6'])
-else:
-    extras_require['test'] = set(['pytest>4.0', 'pytest-cov>=2.6'])
-
-if sys.version_info[:2] < (3, 3):
-    extras_require['test'] |= set(['mock'])
-
-extras_require['dev'] = set(['cython']) | extras_require['test']
 
 extras_require['execnet'] = set(['execnet>=1.0.9'])
 extras_require['sqlalchemy'] = set(['sqlalchemy'])
@@ -206,11 +163,10 @@ def run_setup(with_cext):
         cmdclass=cmdclass,
         tests_require=['pytest'],
         classifiers=[
-            'Programming Language :: Python :: 2.7',
-            'Programming Language :: Python :: 3.4',
-            'Programming Language :: Python :: 3.5',
-            'Programming Language :: Python :: 3.6',
-
+            'Programming Language :: Python :: 3.7',
+            'Programming Language :: Python :: 3.8',
+            'Programming Language :: Python :: 3.9',
+            'Programming Language :: Python :: 3.10',
         ],
         extras_require=extras_require,
         distclass=Distribution,
