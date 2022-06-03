@@ -1,6 +1,6 @@
 """Tests with a filter disabling a handler for comparsion in logging"""
 from logging import getLogger, StreamHandler, Filter
-from cStringIO import StringIO
+from io import StringIO
 
 
 log = getLogger('Testlogger')
@@ -16,5 +16,5 @@ def run():
     handler = StreamHandler(out)
     handler.addFilter(DisableFilter())
     log.addHandler(handler)
-    for x in xrange(500):
+    for x in range(500):
         log.warning('this is not handled')
