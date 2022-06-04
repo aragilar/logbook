@@ -43,6 +43,8 @@ jobs:
           - image: "python:3.9"
             tox_envs: "flake8"
           - image: "python:3.9"
+            tox_envs: "pylint"
+          - image: "python:3.9"
             tox_envs: "check-manifest"
           - image: "python:3.9"
             tox_envs: "checkreadme"
