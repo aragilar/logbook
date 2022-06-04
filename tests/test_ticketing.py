@@ -8,7 +8,6 @@ except ImportError:
 
 import logbook
 import pytest
-from logbook.helpers import xrange
 
 from .utils import require_module
 
@@ -27,7 +26,7 @@ def test_basic_ticketing(logger):
     from logbook.ticketing import TicketingHandler
     from time import sleep
     with TicketingHandler('sqlite:///') as handler:
-        for x in xrange(5):
+        for x in range(5):
             logger.warn('A warning')
             sleep(0.2)
             logger.info('An error')

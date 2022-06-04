@@ -9,11 +9,12 @@
     :license: BSD, see LICENSE for more details.
 """
 from itertools import count
-from logbook.helpers import get_iterator_next_method
+
 from logbook.concurrency import (
     thread_get_ident, greenlet_get_ident, thread_local, greenlet_local,
     ThreadLock, GreenletRLock, is_gevent_enabled, ContextVar, context_get_ident,
     is_context_enabled)
+from logbook.helpers import get_iterator_next_method
 
 _missing = object()
 _MAX_CONTEXT_OBJECT_CACHE = 256
@@ -40,7 +41,7 @@ def group_reflected_property(name, default, fallback=_missing):
     return property(_get, _set, _del)
 
 
-class _StackBound(object):
+class _StackBound:
 
     def __init__(self, obj, push, pop):
         self.__obj = obj
@@ -55,7 +56,7 @@ class _StackBound(object):
         self.__pop()
 
 
-class StackedObject(object):
+class StackedObject:
     """Baseclass for all objects that provide stack manipulation
     operations.
     """
@@ -131,7 +132,7 @@ class StackedObject(object):
         return _cls(self, self.push_application, self.pop_application)
 
 
-class ContextStackManager(object):
+class ContextStackManager:
     """Helper class for context objects that manages a stack of
     objects.
     """

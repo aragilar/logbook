@@ -104,7 +104,7 @@ def _no_decorator(func):
 @pytest.mark.parametrize('decorator', [_no_decorator, classmethod])
 def test_class_deprecation(capture, decorator):
 
-    class Bla(object):
+    class Bla:
 
         @deprecated('reason')
         @classmethod

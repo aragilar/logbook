@@ -4,7 +4,6 @@ import time
 from datetime import datetime
 
 import logbook
-from logbook.helpers import u, xrange
 import gzip
 import brotli
 from .utils import capturing_stderr_context, LETTERS
@@ -24,7 +23,7 @@ def test_file_handler(logfile, activation_strategy, logger):
 def test_file_handler_unicode(logfile, activation_strategy, logger):
     with capturing_stderr_context() as captured:
         with activation_strategy(logbook.FileHandler(logfile)):
-            logger.info(u('\u0431'))
+            logger.info('\u0431')
     assert (not captured.getvalue())
 
 
@@ -79,7 +78,7 @@ def test_rotating_file_handler(logfile, activation_strategy, logger):
                                           )
     handler.format_string = '{record.message}'
     with activation_strategy(handler):
-        for c, x in zip(LETTERS, xrange(32)):
+        for c, x in zip(LETTERS, range(32)):
             logger.warn(c * 256)
     files = [x for x in os.listdir(os.path.dirname(logfile))
              if x.startswith(basename)]
@@ -109,19 +108,19 @@ def test_timed_rotating_file_handler(tmpdir, activation_strategy, backup_count):
         return lr
 
     with activation_strategy(handler):
-        for x in xrange(10):
+        for x in range(10):
             handler.handle(fake_record('First One', 2010, 1, 5, x + 1))
-        for x in xrange(20):
+        for x in range(20):
             handler.handle(fake_record('Second One', 2010, 1, 6, x + 1))
-        for x in xrange(10):
+        for x in range(10):
             handler.handle(fake_record('Third One', 2010, 1, 7, x + 1))
-        for x in xrange(20):
+        for x in range(20):
             handler.handle(fake_record('Last One', 2010, 1, 8, x + 1))
 
     files = sorted(x for x in os.listdir(str(tmpdir)) if x.startswith('trot'))
 
     assert files == ['trot-2010-01-0{0}.log'.format(i)
-                     for i in xrange(5, 9)][-backup_count:]
+                     for i in range(5, 9)][-backup_count:]
     with open(str(tmpdir.join('trot-2010-01-08.log'))) as f:
         assert f.readline().rstrip() == '[01:00] Last One'
         assert f.readline().rstrip() == '[02:00] Last One'
@@ -147,19 +146,19 @@ def test_timed_rotating_file_handler__rollover_format(tmpdir, activation_strateg
         return lr
 
     with activation_strategy(handler):
-        for x in xrange(10):
+        for x in range(10):
             handler.handle(fake_record('First One', 2010, 1, 5, x + 1))
-        for x in xrange(20):
+        for x in range(20):
             handler.handle(fake_record('Second One', 2010, 1, 6, x + 1))
-        for x in xrange(10):
+        for x in range(10):
             handler.handle(fake_record('Third One', 2010, 1, 7, x + 1))
-        for x in xrange(20):
+        for x in range(20):
             handler.handle(fake_record('Last One', 2010, 1, 8, x + 1))
 
     files = sorted(x for x in os.listdir(str(tmpdir)) if x.startswith('trot'))
 
     assert files == ['trot.log.2010-01-0{0}'.format(i)
-                     for i in xrange(5, 9)][-backup_count:]
+                     for i in range(5, 9)][-backup_count:]
     with open(str(tmpdir.join('trot.log.2010-01-08'))) as f:
         assert f.readline().rstrip() == '[01:00] Last One'
         assert f.readline().rstrip() == '[02:00] Last One'
@@ -198,19 +197,19 @@ def test_timed_rotating_file_handler__not_timed_filename_for_current(
         return lr
 
     with activation_strategy(handler):
-        for x in xrange(10):
+        for x in range(10):
             handler.handle(fake_record('First One', 2010, 1, 5, x + 1))
-        for x in xrange(20):
+        for x in range(20):
             handler.handle(fake_record('Second One', 2010, 1, 6, x + 1))
-        for x in xrange(10):
+        for x in range(10):
             handler.handle(fake_record('Third One', 2010, 1, 7, x + 1))
-        for x in xrange(20):
+        for x in range(20):
             handler.handle(fake_record('Last One', 2010, 1, 8, x + 1))
 
     computed_files = [x for x in os.listdir(str(tmpdir)) if x.startswith('trot')]
 
     expected_files = ['trot.log.2010-01-01'] if preexisting_file else []
-    expected_files += ['trot.log.2010-01-0{0}'.format(i) for i in xrange(5, 8)]
+    expected_files += ['trot.log.2010-01-0{0}'.format(i) for i in range(5, 8)]
     expected_files += ['trot.log']
     expected_files = expected_files[-backup_count:]
 

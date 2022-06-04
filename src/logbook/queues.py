@@ -14,12 +14,8 @@ from threading import Thread, Lock
 import platform
 from logbook.base import NOTSET, LogRecord, dispatch_record
 from logbook.handlers import Handler, WrapperHandler
-from logbook.helpers import PY2, u
 
-if PY2:
-    from Queue import Empty, Full, Queue as ThreadQueue
-else:
-    from queue import Empty, Full, Queue as ThreadQueue
+from queue import Empty, Full, Queue as ThreadQueue
 
 
 class RedisHandler(Handler):
@@ -445,7 +441,7 @@ class ZeroMQSubscriber(SubscriberBase):
             self.socket = self.context.socket(zmq.SUB)
             if uri is not None:
                 self.socket.connect(uri)
-            self.socket.setsockopt_unicode(zmq.SUBSCRIBE, u(''))
+            self.socket.setsockopt_unicode(zmq.SUBSCRIBE, '')
 
     def __del__(self):
         try:
@@ -473,8 +469,6 @@ class ZeroMQSubscriber(SubscriberBase):
             if not self._zmq.select([self.socket], [], [], timeout)[0]:
                 return
             rv = self.socket.recv(self._zmq.NOBLOCK)
-        if not PY2:
-            rv = rv.decode("utf-8")
         return LogRecord.from_dict(json.loads(rv))
 
 
