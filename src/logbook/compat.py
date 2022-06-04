@@ -14,9 +14,9 @@ import logging
 import sys
 import warnings
 from datetime import datetime
+from collections.abc import Mapping
 
 import logbook
-from logbook.helpers import u, string_types, iteritems, collections_abc
 
 
 def redirect_logging(set_root_logger_level=True):
@@ -34,7 +34,7 @@ def redirect_logging(set_root_logger_level=True):
         logging.root.setLevel(logging.DEBUG)
 
 
-class redirected_logging(object):
+class redirected_logging:
     """Temporarily redirects logging for all threads and reverts
     it later to the old handlers.  Mainly used by the internal
     unittests::
@@ -131,7 +131,7 @@ class RedirectLoggingHandler(logging.Handler):
         kwargs = None
 
         # Logging allows passing a mapping object, in which case args will be a mapping.
-        if isinstance(args, collections_abc.Mapping):
+        if isinstance(args, Mapping):
             kwargs = args
             args = None
         record = LoggingCompatRecord(old_record.name,
@@ -167,7 +167,7 @@ class LoggingHandler(logbook.Handler):
         logbook.Handler.__init__(self, level, filter, bubble)
         if logger is None:
             logger = logging.getLogger()
-        elif isinstance(logger, string_types):
+        elif isinstance(logger, str):
             logger = logging.getLogger(logger)
         self.logger = logger
         # Cache loggers of specific name
@@ -217,7 +217,7 @@ class LoggingHandler(logbook.Handler):
                                    old_record.message,
                                    (), old_record.exc_info,
                                    **optional_kwargs)
-        for key, value in iteritems(old_record.extra):
+        for key, value in old_record.extra.items():
             record.__dict__.setdefault(key, value)
         record.created = self.convert_time(old_record.time)
         return record
@@ -238,7 +238,7 @@ def redirect_warnings():
     redirected_warnings().__enter__()
 
 
-class redirected_warnings(object):
+class redirected_warnings:
     """A context manager that copies and restores the warnings filter upon
     exiting the context, and logs warnings using the logbook system.
 
@@ -261,7 +261,7 @@ class redirected_warnings(object):
 
     def message_to_unicode(self, message):
         try:
-            return u(str(message))
+            return str(message)
         except UnicodeError:
             return str(message).decode('utf-8', 'replace')
 

@@ -4,7 +4,6 @@ import sys
 import threading
 
 from .base import Logger, DEBUG
-from .helpers import string_types
 
 
 class _SlowContextNotifier(object):
@@ -171,7 +170,7 @@ def deprecated(func=None, message=None):
 
     .. versionadded:: 0.12
     """
-    if isinstance(func, string_types):
+    if isinstance(func, str):
         assert message is None
         message = func
         func = None

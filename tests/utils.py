@@ -7,36 +7,18 @@
     :license: BSD, see LICENSE for more details.
 """
 import functools
+from io import StringIO
 import os
 import sys
 from contextlib import contextmanager
 
 import logbook
-from logbook.helpers import StringIO
 
 import pytest
 
 _missing = object()
 
 LETTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
-
-def get_total_delta_seconds(delta):
-    """
-    Replacement for datetime.timedelta.total_seconds() for Python 2.5, 2.6
-    and 3.1
-    """
-    return (delta.microseconds + (delta.seconds + delta.days * 24 * 3600) * 10**6) / 10**6
-
-
-require_py3 = pytest.mark.skipif(
-    sys.version_info[0] < 3, reason="Requires Python 3")
-
-appveyor = pytest.mark.skipif(
-    os.environ.get('APPVEYOR') != 'True', reason='AppVeyor CI test')
-
-travis = pytest.mark.skipif(
-    os.environ.get('TRAVIS') != 'true', reason='Travis CI test')
 
 
 def require_module(module_name):

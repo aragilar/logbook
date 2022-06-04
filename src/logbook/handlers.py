@@ -17,31 +17,27 @@ import errno
 import socket
 import gzip
 import math
-try:
-    from hashlib import sha1
-except ImportError:
-    from sha import new as sha1
+from hashlib import sha1
 import traceback
 import collections
 from datetime import datetime, timedelta
 from collections import deque
+from collections.abc import Mapping, Iterable
 from textwrap import dedent
 
 from logbook.base import (
     CRITICAL, ERROR, WARNING, NOTICE, INFO, DEBUG, TRACE, NOTSET, level_name_property,
     _missing, lookup_level, Flags, ContextObject, ContextStackManager,
     _datetime_factory)
-from logbook.helpers import (
-    rename, b, _is_text_stream, is_unicode, PY2, zip, xrange, string_types, collections_abc,
-    integer_types, reraise, u, with_metaclass)
+from logbook.helpers import rename, _is_text_stream, reraise
 from logbook.concurrency import new_fine_grained_lock
 
-DEFAULT_FORMAT_STRING = u(
+DEFAULT_FORMAT_STRING = (
     '[{record.time:%Y-%m-%d %H:%M:%S.%f%z}] '
     '{record.level_name}: {record.channel}: {record.message}')
 
-SYSLOG_FORMAT_STRING = u('{record.channel}: {record.message}')
-NTLOG_FORMAT_STRING = dedent(u('''
+SYSLOG_FORMAT_STRING = '{record.channel}: {record.message}'
+NTLOG_FORMAT_STRING = dedent('''
     Message Level: {record.level_name}
     Location: {record.filename}:{record.lineno}
     Module: {record.module}
@@ -51,10 +47,10 @@ NTLOG_FORMAT_STRING = dedent(u('''
     Event provided Message:
 
     {record.message}
-    ''')).lstrip()
+    ''').lstrip()
 
-TEST_FORMAT_STRING = u('[{record.level_name}] {record.channel}: {record.message}')
-MAIL_FORMAT_STRING = dedent(u('''
+TEST_FORMAT_STRING = '[{record.level_name}] {record.channel}: {record.message}'
+MAIL_FORMAT_STRING = dedent('''
     Subject: {handler.subject}
 
     Message type:       {record.level_name}
@@ -66,15 +62,15 @@ MAIL_FORMAT_STRING = dedent(u('''
     Message:
 
     {record.message}
-    ''')).lstrip()
+    ''').lstrip()
 
-MAIL_RELATED_FORMAT_STRING = dedent(u('''
+MAIL_RELATED_FORMAT_STRING = dedent('''
     Message type:       {record.level_name}
     Location:           {record.filename}:{record.lineno}
     Module:             {record.module}
     Function:           {record.func_name}
     {record.message}
-    ''')).lstrip()
+    ''').lstrip()
 
 SYSLOG_PORT = 514
 
@@ -114,7 +110,7 @@ class _HandlerType(type):
         return type.__new__(cls, name, bases, d)
 
 
-class Handler(with_metaclass(_HandlerType), ContextObject):
+class Handler(ContextObject, metaclass=_HandlerType):
     """Handler instances dispatch logging events to specific destinations.
 
     The base handler class. Acts as a placeholder which defines the Handler
@@ -345,7 +341,7 @@ class WrapperHandler(Handler):
         setattr(self.handler, name, value)
 
 
-class StringFormatter(object):
+class StringFormatter:
     """Many handlers format the log entries to text format.  This is done
     by a callable that is passed a log record and returns an unicode
     string.  The default formatter for this is implemented as a class so
@@ -387,11 +383,11 @@ class StringFormatter(object):
         line = self.format_record(record, handler)
         exc = self.format_exception(record)
         if exc:
-            line += u('\n') + exc
+            line += '\n' + exc
         return line
 
 
-class StringFormatterHandlerMixin(object):
+class StringFormatterHandlerMixin:
     """A mixin for handlers that provides a default integration for the
     :class:`~logbook.StringFormatter` class.  This is used for all handlers
     by default that log text to a destination.
@@ -426,16 +422,16 @@ class StringFormatterHandlerMixin(object):
     del _get_format_string, _set_format_string
 
 
-class HashingHandlerMixin(object):
+class HashingHandlerMixin:
     """Mixin class for handlers that are hashing records."""
 
     def hash_record_raw(self, record):
         """Returns a hashlib object with the hash of the record."""
         hash = sha1()
         hash.update(('%d\x00' % record.level).encode('ascii'))
-        hash.update((record.channel or u('')).encode('utf-8') + b('\x00'))
-        hash.update(record.filename.encode('utf-8') + b('\x00'))
-        hash.update(b(str(record.lineno)))
+        hash.update((record.channel or '').encode('utf-8') + b'\x00')
+        hash.update(record.filename.encode('utf-8') + b'\x00')
+        hash.update(str(record.lineno).encode("ascii"))
         return hash
 
     def hash_record(self, record):
@@ -446,8 +442,6 @@ class HashingHandlerMixin(object):
         Calls into :meth:`hash_record_raw`.
         """
         return self.hash_record_raw(record).hexdigest()
-
-_NUMBER_TYPES = integer_types + (float,)
 
 
 class LimitingHandlerMixin(HashingHandlerMixin):
@@ -469,7 +463,7 @@ class LimitingHandlerMixin(HashingHandlerMixin):
         self._record_limits = {}
         if record_delta is None:
             record_delta = timedelta(seconds=60)
-        elif isinstance(record_delta, _NUMBER_TYPES):
+        elif isinstance(record_delta, (int, float)):
             record_delta = timedelta(seconds=record_delta)
         self.record_delta = record_delta
 
@@ -566,8 +560,7 @@ class StreamHandler(Handler, StringFormatterHandlerMixin):
         """Encodes the message to the stream encoding."""
         stream = self.stream
         rv = msg + '\n'
-        if ((PY2 and is_unicode(rv)) or
-                not (PY2 or is_unicode(rv) or _is_text_stream(stream))):
+        if not (isinstance(rv, str) or _is_text_stream(stream)):
             enc = self.encoding
             if enc is None:
                 enc = getattr(stream, 'encoding', None) or 'utf-8'
@@ -821,7 +814,7 @@ class RotatingFileHandler(FileHandler):
 
     def perform_rollover(self):
         self.close()
-        for x in xrange(self.backup_count - 1, 0, -1):
+        for x in range(self.backup_count - 1, 0, -1):
             src = '%s.%d' % (self._filename, x)
             dst = '%s.%d' % (self._filename, x + 1)
             try:
@@ -1209,7 +1202,7 @@ class MailHandler(Handler, StringFormatterHandlerMixin,
     """
     default_format_string = MAIL_FORMAT_STRING
     default_related_format_string = MAIL_RELATED_FORMAT_STRING
-    default_subject = u('Server Error in Application')
+    default_subject = 'Server Error in Application'
 
     #: the maximum number of record hashes in the cache for the limiting
     #: feature.  Afterwards, record_cache_prune percent of the oldest
@@ -1356,10 +1349,10 @@ class MailHandler(Handler, StringFormatterHandlerMixin,
         # - tuple to be unpacked to variables keyfile and certfile.
         # - secure=() equivalent to secure=True for backwards compatibility.
         # - secure=False equivalent to secure=None to disable.
-        if isinstance(self.secure, collections_abc.Mapping):
+        if isinstance(self.secure, Mapping):
             keyfile = self.secure.get('keyfile', None)
             certfile = self.secure.get('certfile', None)
-        elif isinstance(self.secure, collections_abc.Iterable):
+        elif isinstance(self.secure, Iterable):
             # Allow empty tuple for backwards compatibility
             if len(self.secure) == 0:
                 keyfile = certfile = None
@@ -1382,7 +1375,7 @@ class MailHandler(Handler, StringFormatterHandlerMixin,
                 con.ehlo()
 
             # Allow credentials to be a tuple or dict.
-            if isinstance(self.credentials, collections_abc.Mapping):
+            if isinstance(self.credentials, Mapping):
                 credentials_args = ()
                 credentials_kwargs = self.credentials
             else:
@@ -1550,7 +1543,7 @@ class SyslogHandler(Handler, StringFormatterHandlerMixin):
         self.facility = facility
         self.socktype = socktype
 
-        if isinstance(address, string_types):
+        if isinstance(address, str):
             self._connect_unixsocket()
             self.enveloper = self.unix_envelope
             default_delimiter = u'\x00'
@@ -1593,7 +1586,7 @@ class SyslogHandler(Handler, StringFormatterHandlerMixin):
         segments = [segment for segment in msg.split(self.record_delimiter)]
         return (before + segment + self.record_delimiter
                 for segment in segments)
-        
+
     def unix_envelope(self, record):
         before = u'<{}>{}'.format(
             self.encode_priority(record),

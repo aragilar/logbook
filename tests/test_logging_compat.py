@@ -1,9 +1,9 @@
 import functools
+from io import StringIO
 from random import randrange
 
 import logbook
 import logbook.compat
-from logbook.helpers import StringIO
 
 import pytest
 

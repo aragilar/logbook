@@ -2,7 +2,6 @@ import pickle
 import sys
 
 import logbook
-from logbook.helpers import iteritems, xrange, u
 
 import pytest
 
@@ -35,7 +34,7 @@ def test_exception_catching_with_unicode():
     """ See https://github.com/getlogbook/logbook/issues/104
     """
     try:
-        raise Exception(u('\u202a test \u202c'))
+        raise Exception('\u202a test \u202c')
     except:
         r = logbook.LogRecord('channel', 'DEBUG', 'test',
                               exc_info=sys.exc_info())
@@ -64,7 +63,7 @@ def test_to_dict(logger, active_handler):
     exported = record.to_dict()
     record.close()
     imported = logbook.LogRecord.from_dict(exported)
-    for key, value in iteritems(record.__dict__):
+    for key, value in record.__dict__.items():
         if key[0] == '_':
             continue
         assert value == getattr(imported, key)
@@ -79,10 +78,10 @@ def test_pickle(active_handler, logger):
     record.pull_information()
     record.close()
 
-    for p in xrange(pickle.HIGHEST_PROTOCOL):
+    for p in range(pickle.HIGHEST_PROTOCOL):
         exported = pickle.dumps(record, p)
         imported = pickle.loads(exported)
-        for key, value in iteritems(record.__dict__):
+        for key, value in record.__dict__.items():
             if key[0] == '_':
                 continue
             imported_value = getattr(imported, key)

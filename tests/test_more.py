@@ -1,7 +1,7 @@
+from io import StringIO
 import sys
 
 import logbook
-from logbook.helpers import StringIO
 
 import pytest
 
@@ -161,7 +161,7 @@ def test_dedup_handler(logger):
     assert 'message repeated 1 times: bar' in test_handler.records[1].message
 
 
-class TestRiemannHandler(object):
+class TestRiemannHandler:
 
     @require_module("riemann_client")
     def test_happy_path(self, logger):

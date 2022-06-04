@@ -18,10 +18,7 @@ from weakref import ref as weakref
 
 from logbook.concurrency import (greenlet_get_ident, thread_get_ident,
                                  thread_get_name)
-
-from logbook.helpers import (PY2, cached_property, integer_types, iteritems,
-                             parse_iso8601, string_types, to_safe_json, u,
-                             xrange)
+from logbook.helpers import cached_property, parse_iso8601, to_safe_json
 
 _has_speedups = False
 try:
@@ -126,21 +123,8 @@ _level_names = {
     TRACE:      'TRACE',
     NOTSET:     'NOTSET'
 }
-_reverse_level_names = dict((v, k) for (k, v) in iteritems(_level_names))
+_reverse_level_names = dict((v, k) for (k, v) in _level_names.items())
 _missing = object()
-
-
-# on python 3 we can savely assume that frame filenames will be in
-# unicode, on Python 2 we have to apply a trick.
-if PY2:
-    def _convert_frame_filename(fn):
-        if isinstance(fn, unicode):
-            fn = fn.decode(sys.getfilesystemencoding() or 'utf-8',
-                           'replace')
-        return fn
-else:
-    def _convert_frame_filename(fn):
-        return fn
 
 
 def level_name_property():
@@ -159,7 +143,7 @@ def level_name_property():
 
 def lookup_level(level):
     """Return the integer representation of a logging level."""
-    if isinstance(level, integer_types):
+    if isinstance(level, int):
         return level
     try:
         return _reverse_level_names[level]
@@ -175,7 +159,7 @@ def get_level_name(level):
         raise LookupError('unknown level')
 
 
-class _ExceptionCatcher(object):
+class _ExceptionCatcher:
     """Helper for exception caught blocks."""
 
     def __init__(self, logger, args, kwargs):
@@ -306,7 +290,7 @@ class Processor(ContextObject):
             self.callback(record)
 
 
-class _InheritedType(object):
+class _InheritedType:
     __slots__ = ()
 
     def __repr__(self):
@@ -368,7 +352,7 @@ def _create_log_record(cls, dict):
     return cls.from_dict(dict)
 
 
-class LogRecord(object):
+class LogRecord:
     """A LogRecord instance represents an event being logged.
 
     LogRecord instances are created every time something is logged. They
@@ -431,8 +415,7 @@ class LogRecord(object):
         #: where custom log processors can attach custom context sensitive
         #: data.
 
-        # TODO: Replace the lambda with str when we remove support for python 2
-        self.extra = defaultdict(lambda: u'', extra or ())
+        self.extra = defaultdict(str, extra or ())
         #: If available, optionally the interpreter frame that pulled the
         #: heavy init.  This usually points to somewhere in the dispatcher.
         #: Might not be available for all calls and is removed when the log
@@ -508,7 +491,7 @@ class LogRecord(object):
         """
         self.pull_information()
         rv = {}
-        for key, value in iteritems(self.__dict__):
+        for key, value in self.__dict__.items():
             if key[:1] != '_' and key not in self._noned_on_close:
                 rv[key] = value
         # the extra dict is exported as regular dict
@@ -535,11 +518,10 @@ class LogRecord(object):
             setattr(self, key, None)
         self._information_pulled = True
         self._channel = None
-        if isinstance(self.time, string_types):
+        if isinstance(self.time, str):
             self.time = parse_iso8601(self.time)
 
-        # TODO: Replace the lambda with str when we remove support for python 2`
-        self.extra = defaultdict(lambda: u'', self.extra)
+        self.extra = defaultdict(str, self.extra)
         return self
 
     def _format_message(self, msg, *args, **kwargs):
@@ -565,7 +547,7 @@ class LogRecord(object):
                 # we catch AttributeError since if msg is bytes,
                 # it won't have the 'format' method
                 if (sys.exc_info()[0] is AttributeError
-                        and (PY2 or not isinstance(self.msg, bytes))):
+                        and (not isinstance(self.msg, bytes))):
                     # this is not the case we thought it is...
                     raise
                 # Assume encoded message with unicode args.
@@ -589,8 +571,6 @@ class LogRecord(object):
                 kwargs=self.kwargs, file=self.filename,
                 lineno=self.lineno
             )
-            if PY2:
-                errormsg = errormsg.encode('utf-8')
             raise TypeError(errormsg)
 
     level_name = level_name_property()
@@ -605,7 +585,7 @@ class LogRecord(object):
         while frm is not None and frm.f_globals is globs:
             frm = frm.f_back
 
-        for _ in xrange(self.frame_correction):
+        for _ in range(self.frame_correction):
             if frm is None:
                 break
 
@@ -643,7 +623,7 @@ class LogRecord(object):
             fn = cf.f_code.co_filename
             if fn[:1] == '<' and fn[-1:] == '>':
                 return fn
-            return _convert_frame_filename(os.path.abspath(fn))
+            return os.path.abspath(fn)
 
     @cached_property
     def lineno(self):
@@ -699,8 +679,6 @@ class LogRecord(object):
         """
         if self.exc_info is not None and self.exc_info != (None, None, None):
             rv = ''.join(traceback.format_exception(*self.exc_info))
-            if PY2:
-                rv = rv.decode('utf-8', 'replace')
             return rv.rstrip()
 
     @cached_property
@@ -708,7 +686,7 @@ class LogRecord(object):
         """The name of the exception."""
         if self.exc_info is not None:
             cls = self.exc_info[0]
-            return u(cls.__module__ + '.' + cls.__name__)
+            return cls.__module__ + '.' + cls.__name__
 
     @property
     def exception_shortname(self):
@@ -721,10 +699,7 @@ class LogRecord(object):
         if self.exc_info is not None:
             val = self.exc_info[1]
             try:
-                if PY2:
-                    return unicode(val)
-                else:
-                    return str(val)
+                return str(val)
             except UnicodeError:
                 return str(val).decode('utf-8', 'replace')
 
@@ -740,7 +715,7 @@ class LogRecord(object):
             return self._dispatcher()
 
 
-class LoggerMixin(object):
+class LoggerMixin:
     """This mixin class defines and implements the "usual" logger
     interface (i.e. the descriptive logging functions).
 
@@ -878,7 +853,7 @@ class LoggerMixin(object):
                                     exc_info, extra, frame_correction)
 
 
-class RecordDispatcher(object):
+class RecordDispatcher:
     """A record dispatcher is the internal base class that implements
     the logic used by the :class:`~logbook.Logger`.
     """
@@ -1030,7 +1005,7 @@ class Logger(RecordDispatcher, LoggerMixin):
     """
 
 
-class LoggerGroup(object):
+class LoggerGroup:
     """A LoggerGroup represents a group of loggers.  It cannot emit log
     messages on its own but it can be used to set the disabled flag and
     log level of all loggers in the group.

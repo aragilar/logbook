@@ -6,7 +6,6 @@ import time
 from .utils import require_module, missing, LETTERS
 
 import logbook
-from logbook.helpers import u
 
 import pytest
 
@@ -14,9 +13,9 @@ import pytest
 @require_module('zmq')
 def test_zeromq_handler(logger, handlers, subscriber):
     tests = [
-        u('Logging something'),
-        u('Something with umlauts äöü'),
-        u('Something else for good measure'),
+        'Logging something',
+        'Something with umlauts äöü',
+        'Something else for good measure',
     ]
     for test in tests:
         for handler in handlers:
@@ -56,7 +55,7 @@ def test_missing_zeromq():
         ZeroMQSubscriber('tcp://127.0.0.1:42000')
 
 
-class MultiProcessingHandlerSendBack(object):
+class MultiProcessingHandlerSendBack:
     def __init__(self, queue):
         self.queue = queue
 
@@ -183,7 +182,7 @@ def test_execnet_handler():
     gw.exit()
 
 
-class SubscriberGroupSendBack(object):
+class SubscriberGroupSendBack:
     def __init__(self, message, queue):
         self.message = message
         self.queue = queue
