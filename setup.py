@@ -60,7 +60,9 @@ import sys
 from distutils.command.build_ext import build_ext
 from distutils.errors import (
     CCompilerError, DistutilsExecError, DistutilsPlatformError)
-from setuptools import Distribution as _Distribution, Extension, setup
+from setuptools import (
+    Distribution as _Distribution, Extension, setup, find_packages
+)
 
 cmdclass = {}
 
@@ -115,7 +117,7 @@ def status_msgs(*msgs):
     print('*' * 75)
 
 version_file_path = os.path.join(
-    os.path.dirname(__file__), 'logbook', '__version__.py')
+    os.path.dirname(__file__), 'src/logbook', '__version__.py')
 
 with open(version_file_path) as version_file:
     exec(version_file.read())  # pylint: disable=W0122
@@ -128,6 +130,7 @@ extras_require['redis'] = set(['redis'])
 extras_require['zmq'] = set(['pyzmq'])
 extras_require['jinja'] = set(['Jinja2'])
 extras_require['compression'] = set(['brotli'])
+extras_require['riemann'] = {'riemann_client'}
 
 extras_require['all'] = set(chain.from_iterable(extras_require.values()))
 
@@ -140,7 +143,7 @@ def run_setup(with_cext):
     if with_cext:
         from Cython.Build import cythonize
         kwargs['ext_modules'] = cythonize([
-            Extension('logbook._speedups', sources=['logbook/_speedups.pyx'])
+            Extension('logbook._speedups', sources=['src/logbook/_speedups.pyx'])
         ])
     else:
         kwargs['ext_modules'] = []
@@ -157,11 +160,11 @@ def run_setup(with_cext):
         author_email='armin.ronacher@active-4.com',
         description='A logging replacement for Python',
         long_description=__doc__,
-        packages=['logbook'],
+        packages = find_packages('src'),
+        package_dir = {'': 'src'},
         zip_safe=False,
         platforms='any',
         cmdclass=cmdclass,
-        tests_require=['pytest'],
         classifiers=[
             'Programming Language :: Python :: 3.7',
             'Programming Language :: Python :: 3.8',
@@ -170,6 +173,7 @@ def run_setup(with_cext):
         ],
         extras_require=extras_require,
         distclass=Distribution,
+        include_package_data=True,
         **kwargs
     )
 

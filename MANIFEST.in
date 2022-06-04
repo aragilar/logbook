@@ -1,3 +1,20 @@
-include MANIFEST.in Makefile CHANGES logbook/_speedups.c logbook/_speedups.pyx tox.ini LICENSE
-include scripts/test_setup.py
+include CHANGES LICENSE
+recursive-include src *.pyx
 recursive-include tests *
+
+include *.txt
+include *.yml
+include Makefile
+include tox.ini
+
+recursive-include benchmark *.py
+recursive-include docs *.bat
+recursive-include docs *.conf
+recursive-include docs *.css_t
+recursive-include docs *.html
+recursive-include docs *.png
+recursive-include docs *.py
+recursive-include docs *.rst
+recursive-include docs Makefile
+
+recursive-exclude scripts *.py
