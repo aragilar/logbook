@@ -3,7 +3,7 @@ from logging import getLogger, FileHandler
 from tempfile import NamedTemporaryFile
 
 
-log = getLogger('Testlogger')
+log = getLogger("Testlogger")
 
 
 def run():
@@ -11,4 +11,4 @@ def run():
     handler = FileHandler(f.name)
     log.addHandler(handler)
     for x in range(500):
-        log.warning(u'this is handled \x6f')
+        log.warning("this is handled \x6f")

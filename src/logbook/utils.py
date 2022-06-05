@@ -7,7 +7,6 @@ from .base import Logger, DEBUG
 
 
 class _SlowContextNotifier(object):
-
     def __init__(self, threshold, func):
         self.timer = threading.Timer(threshold, func)
 
@@ -19,7 +18,7 @@ class _SlowContextNotifier(object):
         self.timer.cancel()
 
 
-_slow_logger = Logger('Slow')
+_slow_logger = Logger("Slow")
 
 
 def logged_if_slow(*args, **kwargs):
@@ -36,16 +35,18 @@ def logged_if_slow(*args, **kwargs):
     The remaining parameters are passed to the
     :meth:`~logbook.base.LoggerMixin.log` method.
     """
-    threshold = kwargs.pop('threshold', 1)
-    func = kwargs.pop('func', None)
+    threshold = kwargs.pop("threshold", 1)
+    func = kwargs.pop("func", None)
     if func is None:
-        logger = kwargs.pop('logger', _slow_logger)
-        level = kwargs.pop('level', DEBUG)
+        logger = kwargs.pop("logger", _slow_logger)
+        level = kwargs.pop("level", DEBUG)
         func = functools.partial(logger.log, level, *args, **kwargs)
     else:
-        if 'logger' in kwargs or 'level' in kwargs:
-            raise TypeError("If using deprecated func parameter, 'logger' and"
-                            " 'level' arguments cannot be passed.")
+        if "logger" in kwargs or "level" in kwargs:
+            raise TypeError(
+                "If using deprecated func parameter, 'logger' and"
+                " 'level' arguments cannot be passed."
+            )
         func = functools.partial(func, *args, **kwargs)
 
     return _SlowContextNotifier(threshold, func)
@@ -53,6 +54,7 @@ def logged_if_slow(*args, **kwargs):
 
 class _Local(threading.local):
     enabled = True
+
 
 _local = _Local()
 
@@ -85,18 +87,24 @@ def forget_deprecation_locations():
 def _write_deprecations_if_needed(message, frame_correction):
     if not _local.enabled:
         return
-    caller_location = _get_caller_location(frame_correction=frame_correction+1)
+    caller_location = _get_caller_location(
+        frame_correction=frame_correction + 1
+    )
     if caller_location not in _deprecation_locations:
-        _deprecation_logger.warning(message, frame_correction=frame_correction+1)
+        _deprecation_logger.warning(
+            message, frame_correction=frame_correction + 1
+        )
         _deprecation_locations.add(caller_location)
 
 
 def log_deprecation_message(message, frame_correction=0):
-    _write_deprecations_if_needed("Deprecation message: {0}".format(message), frame_correction=frame_correction+1)
+    _write_deprecations_if_needed(
+        "Deprecation message: {0}".format(message),
+        frame_correction=frame_correction + 1,
+    )
 
 
 class _DeprecatedFunction(object):
-
     def __init__(self, func, message, obj=None, objtype=None):
         super(_DeprecatedFunction, self).__init__()
         self._func = func
@@ -107,7 +115,7 @@ class _DeprecatedFunction(object):
     def _get_underlying_func(self):
         returned = self._func
         if isinstance(returned, classmethod):
-            if hasattr(returned, '__func__'):
+            if hasattr(returned, "__func__"):
                 returned = returned.__func__
             else:
                 returned = returned.__get__(self._objtype).__func__
@@ -128,15 +136,16 @@ class _DeprecatedFunction(object):
     def _get_func_str(self):
         func = self._get_underlying_func()
         if self._objtype is not None:
-            return '{0}.{1}'.format(self._objtype.__name__, func.__name__)
-        return '{0}.{1}'.format(func.__module__, func.__name__)
+            return "{0}.{1}".format(self._objtype.__name__, func.__name__)
+        return "{0}.{1}".format(func.__module__, func.__name__)
 
     def __get__(self, obj, objtype):
         return self.bound_to(obj, objtype)
 
     def bound_to(self, obj, objtype):
-        return _DeprecatedFunction(self._func, self._message, obj=obj,
-                                   objtype=objtype)
+        return _DeprecatedFunction(
+            self._func, self._message, obj=obj, objtype=objtype
+        )
 
     @property
     def __name__(self):
@@ -149,7 +158,8 @@ class _DeprecatedFunction(object):
             returned += "\n.. deprecated\n"  # pylint: disable=no-member
             if self._message:
                 returned += "   {0}".format(
-                    self._message)  # pylint: disable=no-member
+                    self._message
+                )  # pylint: disable=no-member
         return returned
 
     @__doc__.setter
@@ -182,7 +192,9 @@ def deprecated(func=None, message=None):
 
 
 def _get_caller_location(frame_correction):
-    frame = sys._getframe(frame_correction + 1)  # pylint: disable=protected-access
+    frame = sys._getframe(
+        frame_correction + 1
+    )  # pylint: disable=protected-access
     try:
         return (frame.f_code.co_name, frame.f_lineno)
     finally:

@@ -2,7 +2,7 @@
 from logbook import Logger, NullHandler, Flags
 
 
-log = Logger('Test logger')
+log = Logger("Test logger")
 
 
 class DummyHandler(NullHandler):
@@ -13,4 +13,4 @@ def run():
     with Flags(introspection=False):
         with DummyHandler() as handler:
             for x in range(500):
-                log.warning('this is not handled')
+                log.warning("this is not handled")
