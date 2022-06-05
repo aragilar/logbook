@@ -17,4 +17,6 @@ recursive-include docs *.py
 recursive-include docs *.rst
 recursive-include docs Makefile
 
+recursive-exclude src *.c
 recursive-exclude scripts *.py
+recursive-exclude docs/_build *
