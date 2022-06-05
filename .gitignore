@@ -23,6 +23,7 @@ parts/
 sdist/
 var/
 *.egg-info/
+*.dist-info/
 .installed.cfg
 *.egg
 
@@ -69,3 +70,5 @@ flycheck-*
 .idea
 .vscode
 .python-version
+
+# from hgignore
