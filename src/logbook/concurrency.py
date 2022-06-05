@@ -14,6 +14,7 @@ try:
     def is_gevent_enabled():
         global use_gevent
         return use_gevent
+
 except ImportError:
     has_gevent = False
 
@@ -29,14 +30,15 @@ except ImportError:
 
 if has_gevent:
     from gevent.monkey import get_original as _get_original
-    ThreadLock = _get_original('threading', 'Lock')
-    ThreadRLock = _get_original('threading', 'RLock')
+
+    ThreadLock = _get_original("threading", "Lock")
+    ThreadRLock = _get_original("threading", "RLock")
     try:
-        thread_get_ident = _get_original('threading', 'get_ident')
+        thread_get_ident = _get_original("threading", "get_ident")
     except AttributeError:
         # In 2.7, this is called _get_ident
-        thread_get_ident = _get_original('threading', '_get_ident')
-    thread_local = _get_original('threading', 'local')
+        thread_get_ident = _get_original("threading", "_get_ident")
+    thread_local = _get_original("threading", "local")
 
     from gevent.thread import get_ident as greenlet_get_ident
     from gevent.local import local as greenlet_local
@@ -55,8 +57,11 @@ if has_gevent:
 
         def __repr__(self):
             owner = self._owner
-            return "<%s owner=%r count=%d>" % (self.__class__.__name__, owner,
-                                               self._count)
+            return "<%s owner=%r count=%d>" % (
+                self.__class__.__name__,
+                owner,
+                self._count,
+            )
 
         def acquire(self, blocking=1):
             tid = thread_get_ident()
@@ -119,23 +124,34 @@ if has_gevent:
             self.release()
 
         def _get_greenlet_lock(self):
-            if not hasattr(self._thread_local, 'greenlet_lock'):
-                greenlet_lock = self._thread_local.greenlet_lock = BoundedSemaphore(1)
+            if not hasattr(self._thread_local, "greenlet_lock"):
+                greenlet_lock = (
+                    self._thread_local.greenlet_lock
+                ) = BoundedSemaphore(1)
             else:
                 greenlet_lock = self._thread_local.greenlet_lock
             return greenlet_lock
 
         def _is_owned(self):
             return self._owner == (thread_get_ident(), greenlet_get_ident())
+
 else:
     from threading import (
-        Lock as ThreadLock, RLock as ThreadRLock, current_thread)
+        Lock as ThreadLock,
+        RLock as ThreadRLock,
+        current_thread,
+    )
+
     try:
         from thread import (
-            get_ident as thread_get_ident, _local as thread_local)
+            get_ident as thread_get_ident,
+            _local as thread_local,
+        )
     except ImportError:
         from _thread import (
-            get_ident as thread_get_ident, _local as thread_local)
+            get_ident as thread_get_ident,
+            _local as thread_local,
+        )
 
     def thread_get_name():
         return current_thread().name
@@ -177,13 +193,13 @@ if has_contextvars:
     from itertools import count
 
     context_ident_counter = count()
-    context_ident = ContextVar('context_ident')
+    context_ident = ContextVar("context_ident")
 
     def context_get_ident():
         try:
             return context_ident.get()
         except LookupError:
-            ident = 'context-%s' % next(context_ident_counter)
+            ident = "context-%s" % next(context_ident_counter)
             context_ident.set(ident)
             return ident
 
@@ -195,6 +211,7 @@ if has_contextvars:
             return False
 
 else:
+
     class ContextVar:
         def __init__(self, name):
             self.name = name

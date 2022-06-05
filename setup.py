@@ -59,16 +59,23 @@ import sys
 
 from distutils.command.build_ext import build_ext
 from distutils.errors import (
-    CCompilerError, DistutilsExecError, DistutilsPlatformError)
+    CCompilerError,
+    DistutilsExecError,
+    DistutilsPlatformError,
+)
 from setuptools import (
-    Distribution as _Distribution, Extension, setup, find_packages
+    Distribution as _Distribution,
+    Extension,
+    setup,
+    find_packages,
 )
 
 cmdclass = {}
 
-cpython = platform.python_implementation() == 'CPython'
+cpython = platform.python_implementation() == "CPython"
 
 ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError)
+
 
 class BuildFailed(Exception):
     def __init__(self):
@@ -95,11 +102,11 @@ class ve_build_ext(build_ext):
                 raise BuildFailed()
             raise
 
-cmdclass['build_ext'] = ve_build_ext
+
+cmdclass["build_ext"] = ve_build_ext
 
 
 class Distribution(_Distribution):
-
     def has_ext_modules(self):
         # We want to always claim that we have ext_modules. This will be fine
         # if we don't actually have them (such as on PyPy) because nothing
@@ -111,65 +118,72 @@ class Distribution(_Distribution):
 
 
 def status_msgs(*msgs):
-    print('*' * 75)
+    print("*" * 75)
     for msg in msgs:
         print(msg)
-    print('*' * 75)
+    print("*" * 75)
+
 
 version_file_path = os.path.join(
-    os.path.dirname(__file__), 'src/logbook', '__version__.py')
+    os.path.dirname(__file__), "src/logbook", "__version__.py"
+)
 
 with open(version_file_path) as version_file:
     exec(version_file.read())  # pylint: disable=W0122
 
 extras_require = dict()
 
-extras_require['execnet'] = set(['execnet>=1.0.9'])
-extras_require['sqlalchemy'] = set(['sqlalchemy'])
-extras_require['redis'] = set(['redis'])
-extras_require['zmq'] = set(['pyzmq'])
-extras_require['jinja'] = set(['Jinja2'])
-extras_require['compression'] = set(['brotli'])
-extras_require['riemann'] = {'riemann_client'}
+extras_require["execnet"] = set(["execnet>=1.0.9"])
+extras_require["sqlalchemy"] = set(["sqlalchemy"])
+extras_require["redis"] = set(["redis"])
+extras_require["zmq"] = set(["pyzmq"])
+extras_require["jinja"] = set(["Jinja2"])
+extras_require["compression"] = set(["brotli"])
+extras_require["riemann"] = {"riemann_client"}
 
-extras_require['all'] = set(chain.from_iterable(extras_require.values()))
+extras_require["all"] = set(chain.from_iterable(extras_require.values()))
 
 # sort items to make requires.txt reproducible
-extras_require = { key: sorted(value) for key, value in extras_require.items() }
+extras_require = {key: sorted(value) for key, value in extras_require.items()}
 
 
 def run_setup(with_cext):
     kwargs = {}
     if with_cext:
         from Cython.Build import cythonize
-        kwargs['ext_modules'] = cythonize([
-            Extension('logbook._speedups', sources=['src/logbook/_speedups.pyx'])
-        ])
+
+        kwargs["ext_modules"] = cythonize(
+            [
+                Extension(
+                    "logbook._speedups", sources=["src/logbook/_speedups.pyx"]
+                )
+            ]
+        )
     else:
-        kwargs['ext_modules'] = []
+        kwargs["ext_modules"] = []
 
     setup(
-        name='Logbook',
+        name="Logbook",
         version=__version__,
-        license='BSD',
-        url='https://logbook.readthedocs.io/en/stable/',
+        license="BSD",
+        url="https://logbook.readthedocs.io/en/stable/",
         project_urls={
-            'Source': 'https://github.com/getlogbook/logbook',
+            "Source": "https://github.com/getlogbook/logbook",
         },
-        author='Armin Ronacher, Georg Brandl',
-        author_email='armin.ronacher@active-4.com',
-        description='A logging replacement for Python',
+        author="Armin Ronacher, Georg Brandl",
+        author_email="armin.ronacher@active-4.com",
+        description="A logging replacement for Python",
         long_description=__doc__,
-        packages = find_packages('src'),
-        package_dir = {'': 'src'},
+        packages=find_packages("src"),
+        package_dir={"": "src"},
         zip_safe=False,
-        platforms='any',
+        platforms="any",
         cmdclass=cmdclass,
         classifiers=[
-            'Programming Language :: Python :: 3.7',
-            'Programming Language :: Python :: 3.8',
-            'Programming Language :: Python :: 3.9',
-            'Programming Language :: Python :: 3.10',
+            "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10",
         ],
         extras_require=extras_require,
         distclass=Distribution,
@@ -177,19 +191,20 @@ def run_setup(with_cext):
         **kwargs
     )
 
+
 if not cpython:
     run_setup(False)
     status_msgs(
-        'WARNING: C extensions are not supported on ' +
-        'this Python platform, speedups are not enabled.',
-        'Plain-Python build succeeded.'
+        "WARNING: C extensions are not supported on "
+        + "this Python platform, speedups are not enabled.",
+        "Plain-Python build succeeded.",
     )
-elif os.environ.get('DISABLE_LOGBOOK_CEXT'):
+elif os.environ.get("DISABLE_LOGBOOK_CEXT"):
     run_setup(False)
     status_msgs(
-        'DISABLE_LOGBOOK_CEXT is set; ' +
-        'not attempting to build C extensions.',
-        'Plain-Python build succeeded.'
+        "DISABLE_LOGBOOK_CEXT is set; "
+        + "not attempting to build C extensions.",
+        "Plain-Python build succeeded.",
     )
 else:
     try:
@@ -197,16 +212,16 @@ else:
     except BuildFailed as exc:
         status_msgs(
             exc.cause,
-            'WARNING: The C extension could not be compiled, ' +
-            'speedups are not enabled.',
-            'Failure information, if any, is above.',
-            'Retrying the build without the C extension now.'
+            "WARNING: The C extension could not be compiled, "
+            + "speedups are not enabled.",
+            "Failure information, if any, is above.",
+            "Retrying the build without the C extension now.",
         )
 
         run_setup(False)
 
         status_msgs(
-            'WARNING: The C extension could not be compiled, ' +
-            'speedups are not enabled.',
-            'Plain-Python build succeeded.'
+            "WARNING: The C extension could not be compiled, "
+            + "speedups are not enabled.",
+            "Plain-Python build succeeded.",
         )

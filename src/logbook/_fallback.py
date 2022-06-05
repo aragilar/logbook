@@ -11,9 +11,17 @@
 from itertools import count
 
 from logbook.concurrency import (
-    thread_get_ident, greenlet_get_ident, thread_local, greenlet_local,
-    ThreadLock, GreenletRLock, is_gevent_enabled, ContextVar, context_get_ident,
-    is_context_enabled)
+    thread_get_ident,
+    greenlet_get_ident,
+    thread_local,
+    greenlet_local,
+    ThreadLock,
+    GreenletRLock,
+    is_gevent_enabled,
+    ContextVar,
+    context_get_ident,
+    is_context_enabled,
+)
 from logbook.helpers import get_iterator_next_method
 
 _missing = object()
@@ -25,8 +33,9 @@ def group_reflected_property(name, default, fallback=_missing):
     value of the group if set.  If there is no such group, the
     provided default is used.
     """
+
     def _get(self):
-        rv = getattr(self, '_' + name, _missing)
+        rv = getattr(self, "_" + name, _missing)
         if rv is not _missing and rv != fallback:
             return rv
         if self.group is None:
@@ -34,15 +43,15 @@ def group_reflected_property(name, default, fallback=_missing):
         return getattr(self.group, name)
 
     def _set(self, value):
-        setattr(self, '_' + name, value)
+        setattr(self, "_" + name, value)
 
     def _del(self):
-        delattr(self, '_' + name)
+        delattr(self, "_" + name)
+
     return property(_get, _set, _del)
 
 
 class _StackBound:
-
     def __init__(self, obj, push, pop):
         self.__obj = obj
         self.__push = push
@@ -143,7 +152,7 @@ class ContextStackManager:
         self._thread_context = thread_local()
         self._greenlet_context_lock = GreenletRLock()
         self._greenlet_context = greenlet_local()
-        self._context_stack = ContextVar('stack')
+        self._context_stack = ContextVar("stack")
         self._cache = {}
         self._stackop = get_iterator_next_method(count())
 
@@ -166,10 +175,10 @@ class ContextStackManager:
             if len(self._cache) > _MAX_CONTEXT_OBJECT_CACHE:
                 self._cache.clear()
             objects = self._global[:]
-            objects.extend(getattr(self._thread_context, 'stack', ()))
+            objects.extend(getattr(self._thread_context, "stack", ()))
 
             if use_gevent:
-                objects.extend(getattr(self._greenlet_context, 'stack', ()))
+                objects.extend(getattr(self._greenlet_context, "stack", ()))
 
             if use_context:
                 objects.extend(self._context_stack.get([]))
@@ -185,7 +194,7 @@ class ContextStackManager:
             # remote chance to conflict with thread ids
             self._cache.pop(greenlet_get_ident(), None)
             item = (self._stackop(), obj)
-            stack = getattr(self._greenlet_context, 'stack', None)
+            stack = getattr(self._greenlet_context, "stack", None)
             if stack is None:
                 self._greenlet_context.stack = [item]
             else:
@@ -198,8 +207,8 @@ class ContextStackManager:
         try:
             # remote chance to conflict with thread ids
             self._cache.pop(greenlet_get_ident(), None)
-            stack = getattr(self._greenlet_context, 'stack', None)
-            assert stack, 'no objects on stack'
+            stack = getattr(self._greenlet_context, "stack", None)
+            assert stack, "no objects on stack"
             return stack.pop()[1]
         finally:
             self._greenlet_context_lock.release()
@@ -217,7 +226,7 @@ class ContextStackManager:
     def pop_context(self):
         self._cache.pop(context_get_ident(), None)
         stack = self._context_stack.get(None)
-        assert stack, 'no objects on stack'
+        assert stack, "no objects on stack"
         return stack.pop()[1]
 
     def push_thread(self, obj):
@@ -225,7 +234,7 @@ class ContextStackManager:
         try:
             self._cache.pop(thread_get_ident(), None)
             item = (self._stackop(), obj)
-            stack = getattr(self._thread_context, 'stack', None)
+            stack = getattr(self._thread_context, "stack", None)
             if stack is None:
                 self._thread_context.stack = [item]
             else:
@@ -237,8 +246,8 @@ class ContextStackManager:
         self._thread_context_lock.acquire()
         try:
             self._cache.pop(thread_get_ident(), None)
-            stack = getattr(self._thread_context, 'stack', None)
-            assert stack, 'no objects on stack'
+            stack = getattr(self._thread_context, "stack", None)
+            assert stack, "no objects on stack"
             return stack.pop()[1]
         finally:
             self._thread_context_lock.release()
@@ -248,7 +257,7 @@ class ContextStackManager:
         self._cache.clear()
 
     def pop_application(self):
-        assert self._global, 'no objects on application stack'
+        assert self._global, "no objects on application stack"
         popped = self._global.pop()[1]
         self._cache.clear()
         return popped

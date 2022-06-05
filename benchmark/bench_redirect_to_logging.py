@@ -4,7 +4,7 @@ from logbook.compat import LoggingHandler
 from io import StringIO
 
 
-log = getLogger('Test logger')
+log = getLogger("Test logger")
 
 
 def run():
@@ -12,5 +12,5 @@ def run():
     log.addHandler(StreamHandler(out))
     with LoggingHandler():
         for x in range(500):
-            log.warning('this is not handled')
-    assert out.getvalue().count('\n') == 500
+            log.warning("this is not handled")
+    assert out.getvalue().count("\n") == 500

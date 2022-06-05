@@ -29,7 +29,8 @@ def require_module(module_name):
         found = False
 
     return pytest.mark.skipif(
-        not found, reason='Module {0} is required'.format(module_name))
+        not found, reason="Module {0} is required".format(module_name)
+    )
 
 
 def make_fake_mail_handler(**kwargs):
@@ -45,8 +46,8 @@ def make_fake_mail_handler(**kwargs):
         def sendmail(self, fromaddr, recipients, mail):
             self.mails.append((fromaddr, recipients, mail))
 
-    kwargs.setdefault('level', logbook.ERROR)
-    return FakeMailHandler('foo@example.com', ['bar@example.com'], **kwargs)
+    kwargs.setdefault("level", logbook.ERROR)
+    return FakeMailHandler("foo@example.com", ["bar@example.com"], **kwargs)
 
 
 def missing(name):
@@ -62,7 +63,9 @@ def missing(name):
                     del sys.modules[name]
                 else:
                     sys.modules[name] = old
+
         return wrapper
+
     return decorate
 
 
