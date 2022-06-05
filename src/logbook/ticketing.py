@@ -148,7 +148,6 @@ class SQLAlchemyBackend(BackendBase):
             # Pool size is more custom for out stack
             self.engine = create_engine(
                 engine_or_uri,
-                convert_unicode=True,
                 pool_recycle=360,
                 pool_size=1000,
             )

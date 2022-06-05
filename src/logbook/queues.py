@@ -256,7 +256,8 @@ class ZeroMQHandler(Handler):
         )
 
     def close(self, linger=-1):
-        self.socket.close(linger)
+        if hasattr(self, "socket"):
+            self.socket.close(linger)
 
     def __del__(self):
         # When the Handler is deleted we must close our socket in a
@@ -285,7 +286,7 @@ class ThreadController(object):
         """Starts the task thread."""
         self.running = True
         self._thread = Thread(target=self._target)
-        self._thread.setDaemon(True)
+        self._thread.daemon = True
         self._thread.start()
 
     def stop(self):
@@ -654,7 +655,7 @@ class TWHThreadController(object):
         """Starts the task thread."""
         self.running = True
         self._thread = Thread(target=self._target)
-        self._thread.setDaemon(True)
+        self._thread.daemon = True
         self._thread.start()
 
     def stop(self):

@@ -32,11 +32,6 @@ from logbook._termcolors import colorize
 from logbook.ticketing import TicketingHandler as DatabaseHandler
 from logbook.ticketing import BackendBase
 
-try:
-    import riemann_client.client
-    import riemann_client.transport
-except ImportError:
-    riemann_client = None
 
 
 from urllib.parse import parse_qsl, urlencode
@@ -586,10 +581,12 @@ class RiemannHandler(Handler):
         :param ttl: defines time to live in riemann
         :param flush_threshold: count of events after which we send to riemann
         """
-        if riemann_client is None:
-            raise NotImplementedError(
+        try:
+            import riemann_client.transport
+        except ImportError:
+            raise RuntimeError(
                 "The Riemann handler requires the riemann_client package"
-            )  # pragma: no cover
+            )
         Handler.__init__(self, level, filter, bubble)
         self.host = host
         self.port = port
@@ -636,6 +633,12 @@ class RiemannHandler(Handler):
         }
 
     def _flush_events(self):
+        try:
+            import riemann_client.client
+        except ImportError:
+            raise RuntimeError(
+                "The Riemann handler requires the riemann_client package"
+            )
         with riemann_client.client.QueuedClient(
             self.transport(self.host, self.port)
         ) as cl:
