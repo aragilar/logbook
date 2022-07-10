@@ -7,6 +7,7 @@ include *.yml
 include Makefile
 include tox.ini
 include pytest.ini
+include bors.toml
 
 recursive-include benchmark *.py
 recursive-include docs *.bat
