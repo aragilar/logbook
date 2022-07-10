@@ -89,7 +89,7 @@ jobs:
       - name: "Run tox targets for ${{ matrix.tox_envs }}"
         run: "python -m tox -e ${{ matrix.tox_envs }}"
       - name: "Run coveralls upload for ${{ matrix.tox_envs }}"
-        run: "python -m coveralls"
+        run: "python -m coveralls --service=github"
         if: ${{ matrix.upload_coverage }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -135,6 +135,6 @@ jobs:
       - name: "Run tox targets for ${{ matrix.tox_envs }}"
         run: "python -m tox -e ${{ matrix.tox_envs }}"
       - name: "Run coveralls upload for ${{ matrix.tox_envs }}"
-        run: "python -m coveralls"
+        run: "python -m coveralls --service=github"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
