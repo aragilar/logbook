@@ -16,40 +16,58 @@ jobs:
         include:
           - image: "python:3.7"
             tox_envs: "py37"
+            upload_coverage: true
           - image: "python:3.8"
             tox_envs: "py38"
+            upload_coverage: true
           - image: "python:3.9"
             tox_envs: "py39"
+            upload_coverage: true
           - image: "python:3.10"
             tox_envs: "py310"
+            upload_coverage: true
           - image: "python:3.7"
             tox_envs: "py37-speedups"
+            upload_coverage: true
           - image: "python:3.8"
             tox_envs: "py38-speedups"
+            upload_coverage: true
           - image: "python:3.9"
             tox_envs: "py39-speedups"
+            upload_coverage: true
           - image: "python:3.10"
             tox_envs: "py310-speedups"
+            upload_coverage: true
           - image: "python:3.7"
             tox_envs: "py37-benchmark"
+            upload_coverage: false
           - image: "python:3.8"
             tox_envs: "py38-benchmark"
+            upload_coverage: false
           - image: "python:3.9"
             tox_envs: "py39-benchmark"
+            upload_coverage: false
           - image: "python:3.10"
             tox_envs: "py310-benchmark"
+            upload_coverage: false
           - image: "python:3.9"
             tox_envs: "docs"
+            upload_coverage: false
           - image: "python:3.9"
             tox_envs: "flake8"
+            upload_coverage: false
           - image: "python:3.9"
             tox_envs: "pylint"
+            upload_coverage: false
           - image: "python:3.9"
             tox_envs: "check-manifest"
+            upload_coverage: false
           - image: "python:3.9"
             tox_envs: "checkreadme"
+            upload_coverage: false
           - image: "pypy:3"
             tox_envs: "pypy3"
+            upload_coverage: true
 
     container:
       image: "${{ matrix.image }}"
@@ -67,9 +85,12 @@ jobs:
           python -VV
           python -m site
           python -m pip install --upgrade pip setuptools wheel
-          python -m pip install --upgrade tox
+          python -m pip install --upgrade tox coveralls
       - name: "Run tox targets for ${{ matrix.tox_envs }}"
         run: "python -m tox -e ${{ matrix.tox_envs }}"
+      - name: "Run coveralls upload for ${{ matrix.tox_envs }}"
+        run: "python -m coveralls"
+        if: ${{ matrix.upload_coverage }}
   windows:
     name: "Windows ${{ matrix.tox_envs }}"
     runs-on: windows-latest
@@ -108,6 +129,8 @@ jobs:
           python -VV
           python -m site
           python -m pip install --upgrade pip setuptools wheel
-          python -m pip install --upgrade tox
+          python -m pip install --upgrade tox coveralls
       - name: "Run tox targets for ${{ matrix.tox_envs }}"
         run: "python -m tox -e ${{ matrix.tox_envs }}"
+      - name: "Run coveralls upload for ${{ matrix.tox_envs }}"
+        run: "python -m coveralls"
