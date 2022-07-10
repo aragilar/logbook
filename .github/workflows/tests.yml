@@ -91,6 +91,7 @@ jobs:
       - name: "Run coveralls upload for ${{ matrix.tox_envs }}"
         run: "python -m coveralls"
         if: ${{ matrix.upload_coverage }}
+        env: GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   windows:
     name: "Windows ${{ matrix.tox_envs }}"
     runs-on: windows-latest
@@ -134,3 +135,4 @@ jobs:
         run: "python -m tox -e ${{ matrix.tox_envs }}"
       - name: "Run coveralls upload for ${{ matrix.tox_envs }}"
         run: "python -m coveralls"
+        env: GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
