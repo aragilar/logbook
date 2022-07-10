@@ -70,6 +70,10 @@ jobs:
           python -m pip install --upgrade tox
       - name: "Run tox targets for ${{ matrix.tox_envs }}"
         run: "python -m tox -e ${{ matrix.tox_envs }}"
+      - name: Coveralls GitHub Action
+        uses: coverallsapp/github-action@1.1.3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
   windows:
     name: "Windows ${{ matrix.tox_envs }}"
     runs-on: windows-latest
@@ -111,3 +115,7 @@ jobs:
           python -m pip install --upgrade tox
       - name: "Run tox targets for ${{ matrix.tox_envs }}"
         run: "python -m tox -e ${{ matrix.tox_envs }}"
+      - name: Coveralls GitHub Action
+        uses: coverallsapp/github-action@1.1.3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
